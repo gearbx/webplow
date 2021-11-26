@@ -10,29 +10,22 @@ from bs4 import BeautifulSoup
 from collections import namedtuple
 from typing import List, Tuple
 
-_URL_PARAM_NAME = "--url"
-_DELAY_PARAM_NAME = "--delay"
-_PROXY_PARAM_NAME = "--proxy"
-_DOMAIN_ONLY_PARAM_NAME = "--domainonly"
-_MAX_DEPTH_PARAM_NAME = "--maxdepth"
 _PARSER = 'html.parser'
 _RESOURCE_LINK = 'link'
 _RESOURCE_SCRIPT = 'script'
 
-_params = None
-
 Params = namedtuple('Params',['url','delay','proxy', 'domainonly', 'maxdepth'])
 
-def _load_params():
+
+def _get_loaded_params():
     parser = argparse.ArgumentParser()
-    parser.add_argument(_URL_PARAM_NAME, help="an URL to probe.")
-    parser.add_argument(_DELAY_PARAM_NAME, action="count", default=1, help="the delay between requests in seconds. (default 1)")
-    parser.add_argument(_PROXY_PARAM_NAME, help="the proxy to use.")
-    parser.add_argument(_DOMAIN_ONLY_PARAM_NAME, action="store_true", help="flag that can be set to probe only for same domain links.")
-    parser.add_argument(_MAX_DEPTH_PARAM_NAME, action="count", default=2, help="the max depth in searching for links. (default 2)")
+    parser.add_argument("--url", help="an URL to probe.")
+    parser.add_argument("--delay", action="count", default=1, help="the delay between requests in seconds. (default 1)")
+    parser.add_argument("--proxy", default=None, help="the proxy to use. (default none)")
+    parser.add_argument("--domainonly", action="store_true", default=False, help="flag that can be set to probe only for same domain links. (default false)")
+    parser.add_argument("--maxdepth", action="count", default=1, help="the max depth in searching for links. (default 1)")
     args = parser.parse_args()
-    global _params
-    _params = Params(args.url, args.delay, args.proxy, args.domainonly, args.maxdepth)  
+    return Params(args.url, args.delay, args.proxy, args.domainonly, args.maxdepth)  
 
 
 def _get_absolute_url(url: str, scheme: str, netloc: str) -> str:
@@ -63,7 +56,7 @@ def _get_attribute_values_for_nodes(data: BeautifulSoup, node_name: str, attribu
     return values
 
 
-def _get_resources(url: str) -> List[Tuple[str, str]]:
+def _get_resources(url: str, params: Params) -> List[Tuple[str, str]]:
     resources = []
     
     parsed_url = urllib.parse.urlparse(url)
@@ -71,8 +64,8 @@ def _get_resources(url: str) -> List[Tuple[str, str]]:
     netloc = parsed_url.netloc
     
     proxies = {
-        'http': _params.proxy,
-        'https': _params.proxy,
+        'http': params.proxy,
+        'https': params.proxy,
     }
 
     try:
@@ -83,7 +76,7 @@ def _get_resources(url: str) -> List[Tuple[str, str]]:
 
     data = BeautifulSoup(response.text, _PARSER)
 
-    expected_domain_for_found_resources = netloc if _params.domainonly else None
+    expected_domain_for_found_resources = netloc if params.domainonly else None
 
     for link in _get_attribute_values_for_nodes(data, 'a', 'href'):
         if link.startswith("#"):
@@ -101,25 +94,25 @@ def _get_resources(url: str) -> List[Tuple[str, str]]:
 
 
 def main():
-    _load_params()
+    params = _get_loaded_params()
     links_to_visit_with_depth = []
     already_visited_links = set()
 
-    if _params.url:        
-        links_to_visit_with_depth.append((_params.url, 1))
+    if params.url:        
+        links_to_visit_with_depth.append((params.url, 1))
 
     links_to_visit_with_depth.extend([(line.rstrip(), 1) for line in sys.stdin if line.rstrip()])
 
     while any(links_to_visit_with_depth):
         link_to_visit, depth = links_to_visit_with_depth.pop(0)
-        if (depth <= _params.maxdepth) and not link_to_visit in already_visited_links:
+        if (depth <= params.maxdepth) and not link_to_visit in already_visited_links:
             already_visited_links.add(link_to_visit)
-            found_resources = _get_resources(link_to_visit)
+            found_resources = _get_resources(link_to_visit, params)
             for found_link, resource_type in found_resources:
                 if resource_type == _RESOURCE_LINK and found_link not in already_visited_links:
                     links_to_visit_with_depth.append((found_link, depth + 1))
                 print(f"{found_link} {resource_type}")
-            time.sleep(_params.delay)
+            time.sleep(params.delay)
 
 if __name__ == "__main__":
     main()
