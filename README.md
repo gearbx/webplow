@@ -1,5 +1,12 @@
 # WebPlow
 WebPlow is a CLI web crawler.
+It has the following features:
+  - urls to search are specified by input parameter and / or standard input.  
+  - configurable local proxy usage support
+  - configurable delay between requests
+  - configurable search max depth
+  - configurable filter found resources to be within the specified domain only
+
 
 ## Usage
 ```
