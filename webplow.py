@@ -25,7 +25,7 @@ Params = namedtuple('Params',['url','delay','proxy', 'domainonly'])
 def _load_params():
     parser = argparse.ArgumentParser()
     parser.add_argument(_URL_PARAM_NAME, help="an URL to probe.")
-    parser.add_argument(_DELAY_PARAM_NAME, action="count", default=3, help="the delay between requests in seconds.")
+    parser.add_argument(_DELAY_PARAM_NAME, action="count", default=1, help="the delay between requests in seconds.")
     parser.add_argument(_PROXY_PARAM_NAME, help="the proxy to use.")
     parser.add_argument(_DOMAIN_ONLY_PARAM_NAME, action="store_true", help="flag that can be set to probe only for same domain links.")
     args = parser.parse_args()
