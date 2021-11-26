@@ -14,23 +14,25 @@ _URL_PARAM_NAME = "--url"
 _DELAY_PARAM_NAME = "--delay"
 _PROXY_PARAM_NAME = "--proxy"
 _DOMAIN_ONLY_PARAM_NAME = "--domainonly"
+_MAX_DEPTH_PARAM_NAME = "--maxdepth"
 _PARSER = 'html.parser'
 _RESOURCE_LINK = 'link'
 _RESOURCE_SCRIPT = 'script'
 
 _params = None
 
-Params = namedtuple('Params',['url','delay','proxy', 'domainonly'])
+Params = namedtuple('Params',['url','delay','proxy', 'domainonly', 'maxdepth'])
 
 def _load_params():
     parser = argparse.ArgumentParser()
     parser.add_argument(_URL_PARAM_NAME, help="an URL to probe.")
-    parser.add_argument(_DELAY_PARAM_NAME, action="count", default=1, help="the delay between requests in seconds.")
+    parser.add_argument(_DELAY_PARAM_NAME, action="count", default=1, help="the delay between requests in seconds. (default 1)")
     parser.add_argument(_PROXY_PARAM_NAME, help="the proxy to use.")
     parser.add_argument(_DOMAIN_ONLY_PARAM_NAME, action="store_true", help="flag that can be set to probe only for same domain links.")
+    parser.add_argument(_MAX_DEPTH_PARAM_NAME, action="count", default=2, help="the max depth in searching for links. (default 2)")
     args = parser.parse_args()
     global _params
-    _params = Params(args.url, args.delay, args.proxy, args.domainonly)  
+    _params = Params(args.url, args.delay, args.proxy, args.domainonly, args.maxdepth)  
 
 
 def _get_absolute_url(url: str, scheme: str, netloc: str) -> str:
@@ -100,22 +102,22 @@ def _get_resources(url: str) -> List[Tuple[str, str]]:
 
 def main():
     _load_params()
-    links_to_visit = []
+    links_to_visit_with_depth = []
     already_visited_links = set()
 
     if _params.url:        
-        links_to_visit.append(_params.url)
+        links_to_visit_with_depth.append((_params.url, 1))
 
-    links_to_visit.extend([line.rstrip() for line in sys.stdin if line.rstrip()])
+    links_to_visit_with_depth.extend([(line.rstrip(), 1) for line in sys.stdin if line.rstrip()])
 
-    while any(links_to_visit):
-        link_to_visit = links_to_visit.pop(0)
-        if not link_to_visit in already_visited_links:
+    while any(links_to_visit_with_depth):
+        link_to_visit, depth = links_to_visit_with_depth.pop(0)
+        if (depth <= _params.maxdepth) and not link_to_visit in already_visited_links:
             already_visited_links.add(link_to_visit)
             found_resources = _get_resources(link_to_visit)
             for found_link, resource_type in found_resources:
                 if resource_type == _RESOURCE_LINK and found_link not in already_visited_links:
-                    links_to_visit.append(found_link)
+                    links_to_visit_with_depth.append((found_link, depth + 1))
                 print(f"{found_link} {resource_type}")
             time.sleep(_params.delay)
 
