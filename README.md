@@ -1,4 +1,4 @@
-# WebPlow
+# WebPlow - a CLI web crawler.
 ## Intro
 WebPlow is a CLI web crawler.
 It has the following features:
