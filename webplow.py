@@ -14,7 +14,7 @@ _PARSER = 'html.parser'
 _RESOURCE_LINK = 'link'
 _RESOURCE_SCRIPT = 'script'
 
-Params = namedtuple('Params',['url','delay','proxy', 'domainonly', 'maxdepth'])
+Params = namedtuple('Params',['url','delay','proxy', 'specificdomain', 'samedomain', 'maxdepth'])
 
 
 def _get_loaded_params():
@@ -22,10 +22,11 @@ def _get_loaded_params():
     parser.add_argument("--url", help="an URL to probe.")
     parser.add_argument("--delay", action="count", default=1, help="the delay between requests in seconds. (default 1)")
     parser.add_argument("--proxy", default=None, help="the proxy to use. (default none)")
-    parser.add_argument("--domainonly", action="store_true", default=False, help="flag that can be set to probe only for same domain links. (default false)")
+    parser.add_argument("--specificdomain", default=None, help="probe only links belonging to this specific domain. (default none)")
+    parser.add_argument("--samedomain", action="store_true", default=False, help="probe only links that are in the same domain as the page where they are found. (default false)")
     parser.add_argument("--maxdepth", action="count", default=1, help="the max depth in searching for links. (default 1)")
     args = parser.parse_args()
-    return Params(args.url, args.delay, args.proxy, args.domainonly, args.maxdepth)  
+    return Params(args.url, args.delay, args.proxy, args.specificdomain, args.samedomain, args.maxdepth)  
 
 
 def _get_absolute_url(url: str, scheme: str, netloc: str) -> str:
@@ -59,25 +60,37 @@ def _get_attribute_values_for_nodes(data: BeautifulSoup, node_name: str, attribu
 def _get_resources(url: str, params: Params) -> List[Tuple[str, str]]:
     resources = []
     
-    parsed_url = urllib.parse.urlparse(url)
-    scheme = parsed_url.scheme
-    netloc = parsed_url.netloc
-    
+    # get the resource data
     proxies = {
         'http': params.proxy,
         'https': params.proxy,
     }
-
     try:
         response = requests.get(url, proxies=proxies)
     except Exception as ex:
         print(f"Exception: {ex} retrieving {url}.", file=sys.stderr)
         return resources
 
+    # check domain filters
+    parsed_url = urllib.parse.urlparse(url)
+    scheme = parsed_url.scheme
+    netloc = parsed_url.netloc
+    expected_domain_for_found_resources = None
+    if (params.samedomain):
+        if (params.specificdomain):
+            if (params.specificdomain == netloc):
+                expected_domain_for_found_resources = netloc
+            else:
+                return resources
+        else:
+            expected_domain_for_found_resources = netloc
+    else:
+        expected_domain_for_found_resources = params.specificdomain
+
+    # parse the response data
     data = BeautifulSoup(response.text, _PARSER)
 
-    expected_domain_for_found_resources = netloc if params.domainonly else None
-
+    # extract links
     for link in _get_attribute_values_for_nodes(data, 'a', 'href'):
         if link.startswith("#"):
             continue
@@ -85,6 +98,7 @@ def _get_resources(url: str, params: Params) -> List[Tuple[str, str]]:
         if _has_acceptable_domain(absolute_url, expected_domain_for_found_resources):      
             resources.append((absolute_url, _RESOURCE_LINK))
 
+    # extract scripts
     for script in _get_attribute_values_for_nodes(data, 'script', 'src'):
         absolute_url = _get_absolute_url(script, scheme, netloc)
         if _has_acceptable_domain(absolute_url, expected_domain_for_found_resources):      
