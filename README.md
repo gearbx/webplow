@@ -35,3 +35,40 @@ optional arguments:
   --samedomain          probe only links that are in the same domain as the page where they are found. (default false)
   --maxdepth MAXDEPTH   the max depth in searching for links. (default 1)
 ```
+
+## Examples
+### Crawl single link
+```
+webplow.py --url https://python.org
+```
+
+### Crawl multiple links passed through the standard input
+```
+cat input.txt | webplow.py
+echo 'https://python.org' | webplow.py
+```
+ 
+### Go more than one level deep
+```
+webplow.py --maxdepth 2 --url https://python.org
+```
+
+### Use local proxy running on port 8080 along with cert file
+```
+webplow.py --url https://python.org --proxy 127.0.0.1:8080 --certfile ./proxy.pem
+```
+
+### Filter result to only links that belong to the same domain as the input link(s)
+```
+webplow.py --url https://python.org --samedomain
+```
+
+### Filter result to only links that belong to the specified domain
+```
+webplow.py --url https://python.org --specificdomain pandas.pydata.org
+``` 
+
+### Use custom 5s delay between requests.
+```
+webplow.py --delay 5 --url https://python.org
+```
