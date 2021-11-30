@@ -14,7 +14,7 @@ _PARSER = 'html.parser'
 _RESOURCE_LINK = 'link'
 _RESOURCE_SCRIPT = 'script'
 
-Params = namedtuple('Params',['url','delay','proxy', 'specificdomain', 'samedomain', 'maxdepth'])
+Params = namedtuple('Params',['url', 'delay', 'proxy', 'certfile', 'specificdomain', 'samedomain', 'maxdepth'])
 
 
 def _get_loaded_params():
@@ -22,11 +22,12 @@ def _get_loaded_params():
     parser.add_argument("--url", help="an URL to probe.")
     parser.add_argument("--delay", action="count", default=1, help="the delay between requests in seconds. (default 1)")
     parser.add_argument("--proxy", default=None, help="the proxy to use. (default none)")
+    parser.add_argument("--certfile", default=None, help="the proxy certificate file to use. (default none)")
     parser.add_argument("--specificdomain", default=None, help="probe only links belonging to this specific domain. (default none)")
     parser.add_argument("--samedomain", action="store_true", default=False, help="probe only links that are in the same domain as the page where they are found. (default false)")
     parser.add_argument("--maxdepth", action="count", default=1, help="the max depth in searching for links. (default 1)")
     args = parser.parse_args()
-    return Params(args.url, args.delay, args.proxy, args.specificdomain, args.samedomain, args.maxdepth)  
+    return Params(args.url, args.delay, args.proxy, args.certfile, args.specificdomain, args.samedomain, args.maxdepth)  
 
 
 def _get_absolute_url(url: str, scheme: str, netloc: str) -> str:
@@ -66,7 +67,7 @@ def _get_resources(url: str, params: Params) -> List[Tuple[str, str]]:
         'https': params.proxy,
     }
     try:
-        response = requests.get(url, proxies=proxies)
+        response = requests.get(url, proxies=proxies, verify=params.certfile)
     except Exception as ex:
         print(f"Exception: {ex} retrieving {url}.", file=sys.stderr)
         return resources
