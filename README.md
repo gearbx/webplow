@@ -68,7 +68,7 @@ webplow.py --url https://python.org --samedomain
 webplow.py --url https://python.org --specificdomain pandas.pydata.org
 ``` 
 
-### Use custom 5s delay between requests.
+### Use custom 5s delay between requests
 ```
 webplow.py --delay 5 --url https://python.org
 ```
