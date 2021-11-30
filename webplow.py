@@ -13,19 +13,31 @@ from typing import List, Tuple
 _PARSER = 'html.parser'
 _RESOURCE_LINK = 'link'
 _RESOURCE_SCRIPT = 'script'
+_BAD_INPUT_ERROR_CODE = 1
 
 Params = namedtuple('Params',['url', 'delay', 'proxy', 'certfile', 'specificdomain', 'samedomain', 'maxdepth'])
 
 
+def check_larger_than_zero(value):
+    try:
+        v = int(value)
+        if v <= 0:
+            print(f"Invalid parameter value {value}", file=sys.stderr)
+            sys.exit(_BAD_INPUT_ERROR_CODE)
+        return v
+    except Exception:
+        print(f"Invalid parameter value {value}", file=sys.stderr)
+        sys.exit(_BAD_INPUT_ERROR_CODE)
+
 def _get_loaded_params():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", help="an URL to probe.")
-    parser.add_argument("--delay", action="count", default=1, help="the delay between requests in seconds. (default 1)")
+    parser.add_argument("--delay", type=check_larger_than_zero, default=1, help="the delay between requests in seconds. (default 1)")
     parser.add_argument("--proxy", default=None, help="the proxy to use. (default none)")
     parser.add_argument("--certfile", default=None, help="the proxy certificate file to use. (default none)")
     parser.add_argument("--specificdomain", default=None, help="probe only links belonging to this specific domain. (default none)")
     parser.add_argument("--samedomain", action="store_true", default=False, help="probe only links that are in the same domain as the page where they are found. (default false)")
-    parser.add_argument("--maxdepth", action="count", default=1, help="the max depth in searching for links. (default 1)")
+    parser.add_argument("--maxdepth", type=check_larger_than_zero, default=1, help="the max depth in searching for links. (default 1)")
     args = parser.parse_args()
     return Params(args.url, args.delay, args.proxy, args.certfile, args.specificdomain, args.samedomain, args.maxdepth)  
 
@@ -115,8 +127,8 @@ def main():
 
     if params.url:        
         links_to_visit_with_depth.append((params.url, 1))
-
-    links_to_visit_with_depth.extend([(line.rstrip(), 1) for line in sys.stdin if line.rstrip()])
+    else:
+        links_to_visit_with_depth.extend([(line.rstrip(), 1) for line in sys.stdin if line.rstrip()])
 
     while any(links_to_visit_with_depth):
         link_to_visit, depth = links_to_visit_with_depth.pop(0)
