@@ -8,7 +8,7 @@
   - configurable filter for extracted resources to be in the same domain as the page where they are found
   - the found links are sent to stdout and the errors to stderr streams
 
-## License: Boost Software License 1.0
+## License: [BSL-1.0](/LICENSE)
 
 ## Installation
 Prerequisites: [Python3](https://www.python.org/downloads/), [Pip](https://pip.pypa.io/en/stable/installation/)
