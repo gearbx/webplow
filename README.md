@@ -7,7 +7,7 @@ It has the following features:
   - configurable search max depth
   - configurable filter for extracted resources to be in the specified domain only
   - configurable filter for extracted resources to be in the same domain as the page where they are found
-  - found links are sent to stdout, errors to stderr streams
+  - the found links are sent to stdout and the errors to stderr streams
 
 ## Installation
 Prerequisites: [Python3](https://www.python.org/downloads/), [Pip](https://pip.pypa.io/en/stable/installation/)
