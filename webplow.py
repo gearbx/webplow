@@ -18,7 +18,7 @@ _BAD_INPUT_ERROR_CODE = 1
 Params = namedtuple('Params',['url', 'delay', 'proxy', 'certfile', 'specificdomain', 'samedomain', 'maxdepth'])
 
 
-def check_larger_than_zero(value):
+def _check_larger_than_zero(value) -> int:
     try:
         v = int(value)
         if v <= 0:
@@ -29,15 +29,15 @@ def check_larger_than_zero(value):
         print(f"Invalid parameter value {value}", file=sys.stderr)
         sys.exit(_BAD_INPUT_ERROR_CODE)
 
-def _get_loaded_params():
+def _get_loaded_params() -> Params:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", help="an URL to probe.")
-    parser.add_argument("--delay", type=check_larger_than_zero, default=1, help="the delay between requests in seconds. (default 1)")
+    parser.add_argument("--delay", type=_check_larger_than_zero, default=1, help="the delay between requests in seconds. (default 1)")
     parser.add_argument("--proxy", default=None, help="the proxy to use. (default none)")
     parser.add_argument("--certfile", default=None, help="the proxy certificate file to use. (default none)")
     parser.add_argument("--specificdomain", default=None, help="probe only links belonging to this specific domain. (default none)")
     parser.add_argument("--samedomain", action="store_true", default=False, help="probe only links that are in the same domain as the page where they are found. (default false)")
-    parser.add_argument("--maxdepth", type=check_larger_than_zero, default=1, help="the max depth in searching for links. (default 1)")
+    parser.add_argument("--maxdepth", type=_check_larger_than_zero, default=1, help="the max depth in searching for links. (default 1)")
     args = parser.parse_args()
     return Params(args.url, args.delay, args.proxy, args.certfile, args.specificdomain, args.samedomain, args.maxdepth)  
 
