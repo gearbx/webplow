@@ -74,4 +74,3 @@ webplow.py --url https://python.org --specificdomain pandas.pydata.org
 webplow.py --delay 5 --url https://python.org
 ```
 
-## Version: 1.0
