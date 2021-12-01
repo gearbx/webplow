@@ -1,8 +1,7 @@
-# WebPlow - a CLI web crawler.
-## Intro
+# WebPlow
 WebPlow is a CLI web crawler.
 It has the following features:
-  - urls to search are specified by input parameter and / or standard input.  
+  - urls to search are specified by input parameter and / or standard input 
   - configurable local proxy usage support
   - configurable delay between requests
   - configurable search max depth
@@ -10,19 +9,20 @@ It has the following features:
   - configurable filter for extracted resources to be in the same domain as the page where they are found
   - found links are sent to stdout, errors to stderr streams
 
-## Install
-Prerequisites: Python3, Pip
+## Installation
+Prerequisites: [Python3](https://www.python.org/downloads/), [Pip](https://pip.pypa.io/en/stable/installation/)
 ```
 # Cd into the project directory ("webplow")
 # Make the install script executable.
 chmod u+x ./install.sh
-# Run the install script.
+# Run the install script. (installs the dependency Python packages and copies the Python script to /usr/local/bin)
 ./install.sh
 ```
 
 ## Usage
 ```
-usage: webplow.py [-h] [--url URL] [--delay DELAY] [--proxy PROXY] [--certfile CERTFILE] [--specificdomain SPECIFICDOMAIN] [--samedomain] [--maxdepth MAXDEPTH]
+usage: webplow.py [-h] [--url URL] [--delay DELAY] [--proxy PROXY] [--certfile CERTFILE]
+                  [--specificdomain SPECIFICDOMAIN] [--samedomain] [--maxdepth MAXDEPTH]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -37,38 +37,40 @@ optional arguments:
 ```
 
 ## Examples
-### Crawl single link
+#### Crawl single link
 ```
 webplow.py --url https://python.org
 ```
 
-### Crawl multiple links passed through the standard input
+#### Crawl multiple links passed through the standard input
 ```
 cat input.txt | webplow.py
-echo 'https://python.org' | webplow.py
+echo 'https://example.com' | webplow.py
 ```
  
-### Go more than one level deep
+#### Go more than one level deep
 ```
-webplow.py --maxdepth 2 --url https://python.org
-```
-
-### Use local proxy running on port 8080 along with cert file
-```
-webplow.py --url https://python.org --proxy 127.0.0.1:8080 --certfile ./proxy.pem
+webplow.py --maxdepth 2 --url https://example.com
 ```
 
-### Filter result to only links that belong to the same domain as the input link(s)
+#### Use local proxy running on port 8080 along with cert file
+```
+webplow.py --url https://example.com --proxy 127.0.0.1:8080 --certfile ./proxy.pem
+```
+
+#### Filter result to only links that belong to the same domain as the input link(s)
 ```
 webplow.py --url https://python.org --samedomain
 ```
 
-### Filter result to only links that belong to the specified domain
+#### Filter result to only links that belong to the specified domain
 ```
 webplow.py --url https://python.org --specificdomain pandas.pydata.org
 ``` 
 
-### Use custom 5s delay between requests.
+#### Use custom 5s delay between requests.
 ```
 webplow.py --delay 5 --url https://python.org
 ```
+
+## Version: 1.0
